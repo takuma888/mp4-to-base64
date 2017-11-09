@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+
+<head>
+    <meta charset="utf-8">
+    <title>视频转图片播放</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="format-detection" content="email=no" />
+    <style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    html,
+    body {
+        height: 100%;
+        max-width: 640px;
+        min-width: 320px;
+        margin: 0 auto;
+    }
+
+    .ani-box {
+        width: 100%;
+        height: 100%;
+        /*  width: 375px;
+        height: 667px; */
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate3d(-50%, -50%, 0);
+        overflow: hidden;
+        background-color: #ccc;
+    }
+
+    .ani-box img {
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+
+    .red {
+        color: red;
+        font-size: 16px;
+    }
+    </style>
+</head>
+
+<body>
+    <div class="ani-box"></div>
+    <div class="red">图片加载耗时：</div>
+    <!-- 
+        preload="auto"
+        none: 示意用户可能不会播放该音频，或者服务器希望节省带宽；换句话说，该音频不会被缓存；
+        metadata: 示意即使用户可能不会播放该音频，但获取元数据 (例如音频长度) 还是有必要的。
+        auto: 示意用户可能会播放音频；换句话说，如果有必要，整个音频都将被加载，即使用户不期望使用。
+        空字符串 : 等效于auto属性。
+     -->
+    <audio id="mp3" src="./dist/mp3/music.mp3" preload="auto"></audio>
+    <script>
+    /**
+     * base64.js 文件格式
+     * 
+     *   var imgData = {
+     *      key: Array,     //base64格式的图片数组
+     *      fps: Number     //图片每秒切换的帧率
+     *   }
+     *
+     *  promise.all 方法，
+     *      base64数据，
+     *      音频资源
+     *  都加载好了，在播放
+     * 
+     */
+    var music = document.querySelector('#mp3');
+    var config = {
+        box: document.querySelector('.ani-box')
+    }
+
+    //创建图片标签
+    function createImg() {
+        var img = document.createElement('img');
+        config.box.appendChild(img);
+        return img;
+    }
+
+    //定时器来播放图片
+    function run(imgArr, fn) {
+        var img = createImg();
+        var n = 0;
+        var timer = setInterval(function() {
+            img.src = imgArr[n];
+            n++;
+            if (n == imgArr.length) {
+                n = 0;
+                fn && fn(timer);
+            }
+        }, 1000 / imgData.fps);
+    }
+
+    //动态加载js文件
+    function pLoadJs(url) {
+        return new Promise(function(resolve, reject) {
+            var script = document.createElement('script');　　　　
+            script.type = 'text/javascript';　　　　
+            script.async = 'async';　　　　
+            script.src = url;　　　　
+            document.body.appendChild(script);　　　　
+            if (script.readyState) { //IE
+                script.onreadystatechange = function() {　　　　　　　　
+                    if (script.readyState == 'complete' || script.readyState == 'loaded') {　　　　　　　　　　
+                        script.onreadystatechange = null;　　　　　　　　　　
+                        resolve('js加载完成');　　
+                    }　　　　　　
+                }　　　　
+            } else { //非IE
+                script.onload = function() {
+                    resolve('js加载完成');
+                }　　　　
+            }
+        });
+    }
+
+    function pLoadMp3(music) {
+        return new Promise(function(resolve, reject) {
+            music.addEventListener('loadeddata', function() {
+                //数据已经可以播放(当前位置已经加载) 但没有数据能播放下一帧的内容
+                if (music.readyState >= 2) {
+                    resolve('music加载完成');
+                }
+            });
+        });
+    }
+
+    //当音频和视频同时加载ok，在播放
+    function playViode() {
+        //音频
+        music.play();
+        document.addEventListener("WeixinJSBridgeReady", function() {
+            WeixinJSBridge.invoke('getNetworkType', {}, function(e) {
+                music.play();
+            });
+        }, false);
+
+        //图片
+        run(imgData.key, function(timer) {
+            clearInterval(timer);
+            alert('播完了！')
+        });
+    }
+
+    Promise.all([
+        pLoadJs('./dist/base64.js'),
+        pLoadMp3(music)
+    ]).then(function(posts) {
+        console.log('资源都加载好了！');
+        playViode();
+    })
+    </script>
+</body>
+
+</html>
