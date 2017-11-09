@@ -53,20 +53,30 @@
 <body>
     <div class="ani-box"></div>
     <div class="red">图片加载耗时：</div>
-    <audio autoplay="true" id="mp3" src="./dist/music.mp3"></audio>
+    <audio autoplay="true" id="mp3" src="./dist/mp3/music.mp3"></audio>
     <script type="text/javascript" src="dist/base64.js"></script>
     <script>
+    /**
+     * base64.js 文件格式
+     * 
+     *   var imgData = {
+     *      key: Array,     //base64格式的图片数组
+     *      fps: Number     //图片每秒切换的帧率
+     *   }
+     * 
+     */
+
     var config = {
-        fps: 10, //每秒10帧
         box: document.querySelector('.ani-box')
     }
+    
     //创建图片标签
     function createImg() {
         var img = document.createElement('img');
         config.box.appendChild(img);
         return img;
     }
-    
+
     //定时器来播放图片
     function run(imgArr, fn) {
         document.querySelector('#mp3').play();
@@ -86,10 +96,8 @@
                 n = 0;
                 fn && fn(timer);
             }
-        }, 1000 / config.fps);
+        }, 1000 / imgData.fps);
     }
-
-
 
     run(imgData.key, function(timer) {
         clearInterval(timer);

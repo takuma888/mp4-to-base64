@@ -19,10 +19,14 @@ del.deleteAllSync(config.deleteDirAndFile);
 ff.createMp3(config.src_path, config.save_mp3_path);
 
 //生成图片
-ff.createImg(config.src_path, config.save_img_path, () => {
+ff.createImg(config.src_path, config.save_img_path, {
+    size: '375x667', //生成的图片尺寸
+    frame_rate:10 //一秒内捕获的帧数
+}, () => {
     //图片转base64
     createBase64({
         imgPath: config.save_img_path,
-        savePath: path.join(__dirname, './dist/')
+        savePath: path.join(__dirname, './dist/'),
+        fps:10
     });
 });
