@@ -76,10 +76,26 @@
      *  都加载好了，在播放
      * 
      */
-    var music = document.querySelector('#mp3');
+    var music = document.getElementById("mp3");
     var config = {
         box: document.querySelector('.ani-box')
     }
+
+
+    /**
+     * Audio/Video DOM 事件 在ios上无效；
+     * 
+     * ios 要播放音频才能监听到DOM事件，不播放监听不到；
+     * 安卓 不播放就可以，监听DOM 事件；
+     */
+    music.play();
+    music.pause();
+    document.addEventListener("WeixinJSBridgeReady", function() {
+        WeixinJSBridge.invoke('getNetworkType', {}, function(e) {
+            music.play();
+            music.pause();
+        });
+    }, false);
 
     //创建图片标签
     function createImg() {
@@ -127,12 +143,13 @@
 
     function pLoadMp3(music) {
         return new Promise(function(resolve, reject) {
-            music.addEventListener('loadeddata', function() {
+            music.addEventListener('canplay', function() {
+                alert('支持！');
                 //数据已经可以播放(当前位置已经加载) 但没有数据能播放下一帧的内容
                 if (music.readyState >= 2) {
                     resolve('music加载完成');
                 }
-            });
+            }, false);
         });
     }
 
@@ -158,7 +175,10 @@
         pLoadMp3(music)
     ]).then(function(posts) {
         console.log('资源都加载好了！');
+        alert('资源都加载好了！');
         playViode();
+    }).catch(function(reason) {
+        alert(JSON.stringify(reason));
     })
     </script>
 </body>
