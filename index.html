@@ -53,8 +53,14 @@
 <body>
     <div class="ani-box"></div>
     <div class="red">图片加载耗时：</div>
-    <audio autoplay="true" id="mp3" src="./dist/mp3/music.mp3"></audio>
-    <script type="text/javascript" src="dist/base64.js"></script>
+    <!-- 
+        preload="auto"
+        none: 示意用户可能不会播放该音频，或者服务器希望节省带宽；换句话说，该音频不会被缓存；
+        metadata: 示意即使用户可能不会播放该音频，但获取元数据 (例如音频长度) 还是有必要的。
+        auto: 示意用户可能会播放音频；换句话说，如果有必要，整个音频都将被加载，即使用户不期望使用。
+        空字符串 : 等效于auto属性。
+     -->
+    <audio id="mp3" src="./dist/mp3/music.mp3" preload="auto"></audio>
     <script>
     /**
      * base64.js 文件格式
@@ -63,13 +69,18 @@
      *      key: Array,     //base64格式的图片数组
      *      fps: Number     //图片每秒切换的帧率
      *   }
+     *
+     *  promise.all 方法，
+     *      base64数据，
+     *      音频资源
+     *  都加载好了，在播放
      * 
      */
-
+    var music = document.querySelector('#mp3');
     var config = {
         box: document.querySelector('.ani-box')
     }
-    
+
     //创建图片标签
     function createImg() {
         var img = document.createElement('img');
@@ -79,14 +90,6 @@
 
     //定时器来播放图片
     function run(imgArr, fn) {
-        document.querySelector('#mp3').play();
-
-        document.addEventListener("WeixinJSBridgeReady", function() {
-            WeixinJSBridge.invoke('getNetworkType', {}, function(e) {
-                document.querySelector('#mp3').play();
-            });
-        }, false);
-
         var img = createImg();
         var n = 0;
         var timer = setInterval(function() {
@@ -99,10 +102,64 @@
         }, 1000 / imgData.fps);
     }
 
-    run(imgData.key, function(timer) {
-        clearInterval(timer);
-        alert('播完了！')
-    });
+    //动态加载js文件
+    function pLoadJs(url) {
+        return new Promise(function(resolve, reject) {
+            var script = document.createElement('script');　　　　
+            script.type = 'text/javascript';　　　　
+            script.async = 'async';　　　　
+            script.src = url;　　　　
+            document.body.appendChild(script);　　　　
+            if (script.readyState) { //IE
+                script.onreadystatechange = function() {　　　　　　　　
+                    if (script.readyState == 'complete' || script.readyState == 'loaded') {　　　　　　　　　　
+                        script.onreadystatechange = null;　　　　　　　　　　
+                        resolve('js加载完成');　　
+                    }　　　　　　
+                }　　　　
+            } else { //非IE
+                script.onload = function() {
+                    resolve('js加载完成');
+                }　　　　
+            }
+        });
+    }
+
+    function pLoadMp3(music) {
+        return new Promise(function(resolve, reject) {
+            music.addEventListener('loadeddata', function() {
+                //数据已经可以播放(当前位置已经加载) 但没有数据能播放下一帧的内容
+                if (music.readyState >= 2) {
+                    resolve('music加载完成');
+                }
+            });
+        });
+    }
+
+    //当音频和视频同时加载ok，在播放
+    function playViode() {
+        //音频
+        music.play();
+        document.addEventListener("WeixinJSBridgeReady", function() {
+            WeixinJSBridge.invoke('getNetworkType', {}, function(e) {
+                music.play();
+            });
+        }, false);
+
+        //图片
+        run(imgData.key, function(timer) {
+            clearInterval(timer);
+            alert('播完了！')
+        });
+    }
+
+    Promise.all([
+        pLoadJs('./dist/base64.js'),
+        pLoadMp3(music)
+    ]).then(function(posts) {
+        console.log('资源都加载好了！');
+        playViode();
+    })
     </script>
 </body>
 
