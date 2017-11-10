@@ -20,7 +20,7 @@ ff.createMp3(config.src_path, config.save_mp3_path);
 
 //生成图片
 ff.createImg(config.src_path, config.save_img_path, {
-    size: '375x667', //生成的图片尺寸
+    size: '320x180', //生成的图片尺寸
     frame_rate:10 //一秒内捕获的帧数
 }, () => {
     //图片转base64
