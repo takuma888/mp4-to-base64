@@ -26,7 +26,7 @@
 
     .ani-box {
         width: 320px;
-        height: 180px;
+        height: 176px;
         position: absolute;
         top: 50%;
         left: 50%;
@@ -65,6 +65,7 @@
      *   var imgData = {
      *      key: Array,     //base64格式的图片数组
      *      fps: Number     //图片每秒切换的帧率
+     *      size: String    //图片尺寸
      *   }
      *
      *  promise.all 方法，
@@ -149,7 +150,7 @@
     }
 
     //当音频和视频同时加载ok，在播放
-    function playViode() {
+    function playVideo() {
         //音频
         music.play();
         document.addEventListener("WeixinJSBridgeReady", function() {
@@ -171,7 +172,14 @@
     ]).then(function(posts) {
         console.log('资源都加载好了！');
         alert('资源都加载好了！');
-        playViode();
+
+        //设置图片大小
+        var imageSize = imgData.size.split("x");
+        config.box.style.width = imageSize[0] + 'px';
+        config.box.style.height = imageSize[1] + 'px';
+
+        //播放
+        playVideo();
     }).catch(function(reason) {
         alert(JSON.stringify(reason));
     })

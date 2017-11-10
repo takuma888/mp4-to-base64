@@ -18,15 +18,18 @@ del.deleteAllSync(config.deleteDirAndFile);
 //生成音频文件
 ff.createMp3(config.src_path, config.save_mp3_path);
 
+var imagesConfig = {
+    size: '320x176', //生成的图片尺寸
+    frame_rate: 10 //一秒内捕获的帧数
+}
+
 //生成图片
-ff.createImg(config.src_path, config.save_img_path, {
-    size: '320x180', //生成的图片尺寸
-    frame_rate:10 //一秒内捕获的帧数
-}, () => {
+ff.createImg(config.src_path, config.save_img_path, imagesConfig, () => {
     //图片转base64
-    createBase64({
+    Object.assign(imagesConfig, {
         imgPath: config.save_img_path,
-        savePath: path.join(__dirname, './dist/'),
-        fps:10
+        savePath: path.join(__dirname, './dist/')
     });
+    
+    createBase64(imagesConfig);
 });
